@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>루희의 공부 설계도</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a single graph-paper notebook page; one slide at a time, nav pinned at the bottom like a page turner */
+:root{
+  --paper:#F6F8FC; --grid:rgba(47,91,211,.07); --card:#FFFFFF; --line:#D6DDEB;
+  --ink:#1B2740; --muted:#5B6782; --pen:#2F5BD3; --red:#D24343; --hl:rgba(255,212,64,.65);
+  --ok:#1F8A5B;
+  --f-display:"Do Hyeon","Noto Sans KR",system-ui,sans-serif;
+  --f-body:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;
+  --f-hand:"Nanum Pen Script","Noto Sans KR",cursive;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#121826; --grid:rgba(126,162,255,.07); --card:#1A2232; --line:#2B3548;
+  --ink:#E7ECF6; --muted:#9AA5BC; --pen:#86A6FF; --red:#FF7C7C; --hl:rgba(232,195,64,.38);
+  --ok:#5ED19B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#121826; --grid:rgba(126,162,255,.07); --card:#1A2232; --line:#2B3548;
+  --ink:#E7ECF6; --muted:#9AA5BC; --pen:#86A6FF; --red:#FF7C7C; --hl:rgba(232,195,64,.38);
+  --ok:#5ED19B; color-scheme:dark}
+
+html,body{height:100%}
+body{
+  background-color:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--ink); font-family:var(--f-body); font-size:17px; line-height:1.65;
+}
+.deck{height:100%; display:flex; flex-direction:column}
+.top{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding-block:12px 4px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  font-size:13px; color:var(--muted); letter-spacing:.04em;
+}
+.top b{font-family:var(--f-hand); font-size:22px; font-weight:400; color:var(--pen); letter-spacing:0}
+.bar{height:3px; background:var(--line); border-radius:2px; overflow:hidden; margin-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px))}
+.bar i{display:block; height:100%; width:0; background:var(--pen); transition:width .3s}
+
+.stage{flex:1; min-height:0; position:relative}
+.slide{
+  position:absolute; inset:0; overflow-y:auto;
+  padding-block:28px 32px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:none;
+}
+.slide.active{display:block}
+@media (prefers-reduced-motion:no-preference){.slide.active{animation:in .35s ease}}
+@keyframes in{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.inner{max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:22px}
+
+.eyebrow{font-family:var(--f-hand); font-size:26px; color:var(--red); line-height:1}
+h1,h2{font-family:var(--f-display); font-weight:400; text-wrap:balance; margin:0; line-height:1.2}
+h1{font-size:clamp(44px,9vw,84px)}
+h2{font-size:clamp(30px,5.4vw,46px)}
+h3{font-size:18px; margin:0 0 6px; font-weight:700}
+p{margin:0; max-width:62ch}
+.lead{font-size:clamp(18px,2.4vw,21px)}
+.muted{color:var(--muted)}
+mark{background:linear-gradient(transparent 52%,var(--hl) 52%); color:inherit; padding:0 2px}
+.pen{font-family:var(--f-hand); font-size:28px; line-height:1.25; color:var(--pen)}
+.pen.red{color:var(--red)}
+
+.two{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+.two>*{min-width:0}
+.box{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px}
+.box.x h3::before{content:"✕ "; color:var(--red)}
+.box.o{border-color:var(--pen)}
+.box.o h3::before{content:"○ "; color:var(--pen)}
+
+.steps{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; counter-reset:s}
+.steps li{display:grid; grid-template-columns:44px 1fr; gap:14px; align-items:start; counter-increment:s}
+.steps li>div{min-width:0}
+.steps li::before{
+  content:counter(s); width:40px; height:40px; border-radius:50%;
+  border:2px solid var(--pen); color:var(--pen);
+  font-family:var(--f-display); font-size:22px; display:grid; place-items:center;
+}
+.steps b{display:block; font-size:18px}
+
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:10px}
+.flow span{background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-weight:500}
+.flow em{font-style:normal; color:var(--muted)}
+
+/* worked problem, written like a notebook page */
+.problem{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px}
+.problem .q{font-weight:500}
+.work{display:flex; flex-direction:column; gap:10px; margin-top:14px; border-top:1px dashed var(--line); padding-top:14px}
+.work div{display:grid; grid-template-columns:34px 1fr; gap:8px; align-items:baseline}
+.work div>*{min-width:0}
+.work .n{font-family:var(--f-hand); font-size:26px; color:var(--red); line-height:1}
+.work .ans{font-family:var(--f-hand); font-size:30px; color:var(--pen)}
+svg.road{width:100%; max-width:420px; height:auto; display:block}
+
+.units{width:100%; border-collapse:collapse; font-size:16px}
+.units th,.units td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line)}
+.units th{font-size:12px; letter-spacing:.08em; color:var(--muted); font-weight:500}
+.units td:first-child{font-family:var(--f-display); font-size:20px; color:var(--pen); white-space:nowrap}
+.scroll{overflow-x:auto}
+
+/* photo slots */
+.photos{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+.photo{
+  display:grid; place-items:center; text-align:center; gap:6px;
+  min-height:220px; border:2px dashed var(--line); border-radius:10px; padding:16px;
+  background:var(--card); cursor:pointer; color:var(--muted); position:relative; overflow:hidden;
+}
+.photo:hover,.photo:focus-within{border-color:var(--pen)}
+.photo .ph-t{font-family:var(--f-hand); font-size:26px; color:var(--red)}
+.photo img{width:100%; height:auto; border-radius:6px}
+.photo input{position:absolute; width:1px; height:1px; opacity:0}
+.check{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px}
+.check li{display:flex; gap:10px; align-items:flex-start}
+.check li::before{content:""; flex:none; width:18px; height:18px; margin-top:5px; border:2px solid var(--muted); border-radius:4px}
+
+.sent{display:flex; flex-direction:column; gap:10px}
+.sent div{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px}
+.sent .en{font-size:20px; font-weight:500}
+.sent .ko{font-size:15px; color:var(--muted)}
+
+.week{display:grid; grid-template-columns:repeat(7,1fr); gap:8px}
+.day{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 10px; display:flex; flex-direction:column; gap:6px; min-width:0}
+.day .d{font-family:var(--f-display); font-size:22px}
+.day.we{border-color:var(--pen)}
+.day.we .d{color:var(--pen)}
+.tag{font-size:13px; line-height:1.4; border-radius:6px; padding:4px 6px; background:var(--paper)}
+.tag.home{background:transparent; border:1px dashed var(--pen); color:var(--pen)}
+@media (max-width:720px){
+  .week{grid-template-columns:1fr}
+  .day{flex-direction:row; flex-wrap:wrap; align-items:center}
+  .day .d{width:32px}
+}
+
+.stage3{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+.stage3>div{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; min-width:0}
+.stage3 .w{font-size:12px; letter-spacing:.08em; color:var(--muted)}
+.meter{display:flex; gap:4px; margin:10px 0 6px}
+.meter i{flex:1; height:8px; border-radius:4px; background:var(--line)}
+.meter i.on{background:var(--pen)}
+
+.cover{min-height:100%; display:flex; flex-direction:column; justify-content:center}
+
+.nav{
+  display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding-block:10px calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+  border-top:1px solid var(--line); background:var(--paper);
+}
+.nav button{
+  font:inherit; font-size:15px; font-weight:500; color:var(--ink); background:var(--card);
+  border:1px solid var(--line); border-radius:999px; padding:10px 18px; cursor:pointer; min-width:96px;
+}
+.nav button:hover{border-color:var(--pen)}
+.nav button:focus-visible,.photo:focus-within{outline:2px solid var(--pen); outline-offset:2px}
+.nav button:disabled{opacity:.4; cursor:default}
+.nav .count{font-variant-numeric:tabular-nums; color:var(--muted); font-size:14px}
+.nav .next{background:var(--pen); color:var(--paper); border-color:var(--pen)}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <div class="top"><b>루희의 공부 설계도</b><span id="where">1 / 18</span></div>
+  <div class="bar"><i id="bar"></i></div>
+
+  <main class="stage" id="stage">
+
+    <!-- 1 -->
+    <section class="slide active" id="s1" aria-label="표지">
+      <div class="inner cover">
+        <p class="eyebrow">중1 2학기 · 2026</p>
+        <h1>루희의<br>공부 설계도</h1>
+        <p class="lead">공부하는 옆에서 이래라저래라 하는 대신, 내가 써 본 방법을 한 번에 정리해서 보여 줄게. 다 보고 나서 네 생각을 말해 줘.</p>
+        <p class="pen">→ 화살표나 옆으로 밀어서 넘겨 봐</p>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" id="s2" aria-label="넣기와 꺼내기">
+      <div class="inner">
+        <p class="eyebrow">공부의 핵심</p>
+        <h2>기억은 <mark>꺼낼 때</mark> 단단해진다</h2>
+        <p class="lead">교과서를 여러 번 읽으면 아는 것 같은 느낌은 들어. 그런데 시험은 머리에서 <b>꺼내는</b> 거야. 꺼내 보는 연습을 해야 시험장에서도 나와.</p>
+        <div class="two">
+          <div class="box x"><h3>넣기만 하기</h3><p>다시 읽기, 형광펜 칠하기, 해설 보고 고개 끄덕이기</p></div>
+          <div class="box o"><h3>꺼내 보기</h3><p>책 덮고 백지에 써 보기, 풀었던 문제 다시 풀기, 누군가에게 설명하기</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" id="s3" aria-label="손의 기억">
+      <div class="inner">
+        <p class="eyebrow">원칙 하나</p>
+        <h2>머리에도 <mark>근육 기억</mark>이 있다</h2>
+        <p class="lead">운동선수가 같은 동작을 몸에 새기듯, 손으로 여러 번 쓰면 머리에도 새겨져. 대신 조건이 하나 있어.</p>
+        <div class="two">
+          <div class="box x"><h3>보고 쓰기</h3><p>교과서를 보면서 따라 쓰면 손만 바쁘고 머리는 쉬어. 베껴 쓰기로 끝나.</p></div>
+          <div class="box o"><h3>가리고 쓰기</h3><p>한 번 보고, 가리고, 기억해서 써. 틀린 것만 다시 보고 또 가리고 써.</p></div>
+        </div>
+        <p class="pen">입시 때도, 대학 때도, 회사에서도 이 방법은 계속 통했어.</p>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" id="s4" aria-label="수학 연습장">
+      <div class="inner">
+        <p class="eyebrow">수학 ①</p>
+        <h2>생각은 <mark>넓은 연습장</mark>에서</h2>
+        <p class="lead">시험지 여백은 좁아. 좁은 곳에서 생각하면 생각도 좁아지고 실수도 늘어.</p>
+        <ol class="steps">
+          <li><div><b>연습장에 크게 푼다</b>그림도 크게, 식도 한 줄에 하나씩. 지저분해도 괜찮아.</div></li>
+          <li><div><b>개념이 잡히면</b>왜 이렇게 풀었는지 말로 설명할 수 있을 때까지.</div></li>
+          <li><div><b>시험지에서는 깔끔하게</b>이미 머릿속에 길이 있으니 짧고 정확하게 쓰면 돼.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" id="s5" aria-label="수학 강점과 약점">
+      <div class="inner">
+        <p class="eyebrow">수학 ②</p>
+        <h2>너는 수학을 <mark>잘한다</mark></h2>
+        <div class="two">
+          <div class="box o"><h3>이미 잘하는 것</h3><p>식 계산, 도형 문제. 개념 이해도 빨라.</p></div>
+          <div class="box x"><h3>막히는 곳</h3><p>문장이 길어지는 응용문제. 특히 속력, 농도처럼 과학이 섞인 문제.</p></div>
+        </div>
+        <p class="lead">이건 수학 실력이 부족한 게 아니야. <b>문장을 수식으로 바꾸는 번역</b>이 아직 익숙하지 않은 거야. 번역은 순서만 알면 연습으로 금방 늘어.</p>
+        <div class="flow"><span>긴 문장</span><em>→ 번역 →</em><span>수식</span><em>→ 계산 →</em><span>답</span></div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" id="s6" aria-label="응용문제 4단계">
+      <div class="inner">
+        <p class="eyebrow">수학 ③</p>
+        <h2>응용문제는 <mark>4단계</mark>로 번역한다</h2>
+        <p class="lead">문제를 읽자마자 식부터 세우지 마. 연습장에 이 순서대로 먼저 써.</p>
+        <ol class="steps">
+          <li><div><b>구하는 것에 밑줄</b>문제가 마지막에 묻는 게 뭔지. 단위까지(분? km? g?).</div></li>
+          <li><div><b>숫자는 단위와 함께 옮겨 적기</b>4 km/h, 30분, 15 %처럼. 단위가 다르면 여기서 맞춰.</div></li>
+          <li><div><b>그림이나 표로 그리기</b>거리는 선, 농도는 비커, 시간은 표. 관계가 눈에 보이게.</div></li>
+          <li><div><b>그다음에 식</b>그림을 보면 식이 저절로 나와.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" id="s7" aria-label="예제 풀어보기">
+      <div class="inner">
+        <p class="eyebrow">수학 ④ · 같이 풀어 보기</p>
+        <h2>4단계를 실제로 써 보면</h2>
+        <div class="problem">
+          <p class="q">집에서 도서관까지 시속 4 km로 걸으면 30분이 걸린다. 같은 길을 자전거로 시속 12 km로 가면 몇 분이 걸릴까?</p>
+          <div class="work">
+            <div><span class="n">①</span><span>구하는 것: 자전거로 걸리는 <mark>시간(분)</mark></span></div>
+            <div><span class="n">②</span><span>걷기 4 km/h, 30분 = 0.5 h, 자전거 12 km/h</span></div>
+            <div><span class="n">③</span>
+              <svg class="road" viewBox="0 0 420 70" role="img" aria-label="집에서 도서관까지 거리 그림">
+                <line x1="30" y1="32" x2="390" y2="32" stroke="currentColor" stroke-width="2" fill="none"/>
+                <circle cx="30" cy="32" r="6" fill="currentColor"/>
+                <circle cx="390" cy="32" r="6" fill="currentColor"/>
+                <text x="30" y="60" text-anchor="middle" font-size="14" fill="currentColor">집</text>
+                <text x="390" y="60" text-anchor="middle" font-size="14" fill="currentColor">도서관</text>
+                <text x="210" y="22" text-anchor="middle" font-size="15" fill="currentColor">거리 = ? km</text>
+              </svg>
+            </div>
+            <div><span class="n">④</span><span>거리 = 4 × 0.5 = 2 km<br>시간 = 2 ÷ 12 = 1/6 h</span></div>
+            <div><span class="n"></span><span class="ans">답: 10분</span></div>
+          </div>
+        </div>
+        <p class="pen red">③에서 "거리가 같다"가 보이면 이 문제는 끝난 거야.</p>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" id="s8" aria-label="단위가 힌트">
+      <div class="inner">
+        <p class="eyebrow">수학 ⑤</p>
+        <h2>단위 안에 <mark>식이 숨어 있다</mark></h2>
+        <p class="lead">과학이 섞인 문제가 어려워 보여도, 단위를 읽으면 무엇을 무엇으로 나눌지 알려 줘.</p>
+        <div class="scroll">
+          <table class="units">
+            <thead><tr><th>단위</th><th>숨은 식</th></tr></thead>
+            <tbody>
+              <tr><td>km/h</td><td>거리 ÷ 시간 (1시간에 몇 km)</td></tr>
+              <tr><td>m/s</td><td>거리 ÷ 시간 (1초에 몇 m, 과학 시간에 나와)</td></tr>
+              <tr><td>%</td><td>소금 ÷ 소금물 × 100</td></tr>
+              <tr><td>원/개</td><td>전체 금액 ÷ 개수</td></tr>
+              <tr><td>°C 변화</td><td>나중 온도 − 처음 온도</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="pen">숫자 옆에 단위를 끝까지 붙여 쓰면, 틀린 식은 단위가 안 맞아서 바로 보여.</p>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" id="s9" aria-label="거꾸로 문제 만들기">
+      <div class="inner">
+        <p class="eyebrow">수학 ⑥</p>
+        <h2>거꾸로, <mark>문제를 만들어</mark> 보기</h2>
+        <p class="lead">식을 보고 그 식이 나오는 이야기를 직접 지어 봐. 번역을 반대 방향으로 연습하면 문제를 읽을 때 구조가 보여.</p>
+        <div class="problem">
+          <p class="muted">식</p>
+          <p style="font-family:var(--f-display);font-size:30px">3x + 5 = 20</p>
+          <div class="work">
+            <div><span class="n">예</span><span>하루에 x쪽씩 3일 동안 책을 읽고, 넷째 날 5쪽을 더 읽었더니 모두 20쪽이었다. 하루에 몇 쪽씩 읽었을까?</span></div>
+          </div>
+        </div>
+        <div class="box o"><h3>이번엔 네 차례</h3><p style="font-family:var(--f-display);font-size:26px">4x − 2 = 10</p><p class="muted">속력, 용돈, 게임 점수 뭐든 좋아.</p></div>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" id="s10" aria-label="수학 오답 살펴보기">
+      <div class="inner">
+        <p class="eyebrow">네 오답 들여다보기 · 수학</p>
+        <h2>어느 단계에서 <mark>막혔을까?</mark></h2>
+        <div class="photos">
+          <label class="photo" for="ph-m1"><input type="file" accept="image/*" id="ph-m1"><span class="ph-t">수학 오답 사진 1</span><span>여기에 들어갈 거야</span></label>
+          <label class="photo" for="ph-m2"><input type="file" accept="image/*" id="ph-m2"><span class="ph-t">수학 오답 사진 2</span><span>여기에 들어갈 거야</span></label>
+        </div>
+        <ul class="check">
+          <li>① 구하는 걸 잘못 읽었다</li>
+          <li>② 단위를 안 맞췄다 (분과 시간, g과 kg)</li>
+          <li>③ 관계를 그림으로 안 그렸다</li>
+          <li>④ 식은 맞는데 계산에서 실수했다</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" id="s11" aria-label="영어 소리 먼저">
+      <div class="inner">
+        <p class="eyebrow">영어 ①</p>
+        <h2>영어는 <mark>소리 먼저</mark>, 손은 나중</h2>
+        <p class="lead">단어 뜻은 아는데 읽기가 어려운 건, 소리가 아직 머리에 안 들어가서 그래. 소리가 들어가야 읽는 속도가 붙어.</p>
+        <ol class="steps">
+          <li><div><b>듣기</b>원어민 음성으로 문장을 2번 듣는다.</div></li>
+          <li><div><b>따라 읽기 3~5번</b>소리 내서. 작게 말고, 들리게.</div></li>
+          <li><div><b>가리고 쓰기</b>그다음에 손으로. 소리를 떠올리면서 쓴다.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide" id="s12" aria-label="문장 통째로">
+      <div class="inner">
+        <p class="eyebrow">영어 ②</p>
+        <h2>단어보다 <mark>문장을 통째로</mark></h2>
+        <p class="lead">핵심 문장 하나를 통째로 외우면, 단어도 문법도 같이 들어와. 양을 늘리기보다 확실히 머리에 넣는 게 중요해.</p>
+        <div class="sent">
+          <div><p class="en">I <mark>usually</mark> go to school <mark>by bus</mark>.</p><p class="ko">나는 보통 버스로 학교에 간다.</p></div>
+          <div><p class="en">She <mark>is good at</mark> drawing pictures.</p><p class="ko">그녀는 그림을 잘 그린다.</p></div>
+          <div><p class="en"><mark>Can you tell me</mark> the way to the library?</p><p class="ko">도서관 가는 길 좀 알려 줄래?</p></div>
+        </div>
+        <p class="pen">형광펜 부분만 바꾸면 수십 개 문장을 만들 수 있어.</p>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide" id="s13" aria-label="영어 오답 살펴보기">
+      <div class="inner">
+        <p class="eyebrow">네 오답 들여다보기 · 영어</p>
+        <h2>왜 틀렸는지 <mark>이름 붙이기</mark></h2>
+        <div class="photos">
+          <label class="photo" for="ph-e1"><input type="file" accept="image/*" id="ph-e1"><span class="ph-t">영어 오답 사진 1</span><span>여기에 들어갈 거야</span></label>
+          <label class="photo" for="ph-e2"><input type="file" accept="image/*" id="ph-e2"><span class="ph-t">영어 오답 사진 2</span><span>여기에 들어갈 거야</span></label>
+        </div>
+        <ul class="check">
+          <li>단어 뜻을 몰랐다</li>
+          <li>뜻은 아는데 문장 구조를 못 잡았다</li>
+          <li>읽는 데 시간이 오래 걸려서 급했다</li>
+          <li>비슷한 문장을 외워 둔 적이 없었다</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide" id="s14" aria-label="책 읽기">
+      <div class="inner">
+        <p class="eyebrow">국어 · 책 읽기</p>
+        <h2>다 읽지 않아도 돼. <mark>세 줄</mark>만 남기자</h2>
+        <p class="lead">수학 응용문제도, 영어 지문도 결국 읽는 힘이야. 좋아하는 분야의 짧은 글부터 시작하고, 읽고 나면 세 줄만 써.</p>
+        <div class="problem">
+          <div class="work" style="margin-top:0;border-top:0;padding-top:0">
+            <div><span class="n">1</span><span>무엇에 대한 글인가?</span></div>
+            <div><span class="n">2</span><span>글쓴이가 가장 하고 싶은 말은?</span></div>
+            <div><span class="n">3</span><span>내 생각은? (동의, 반대, 궁금한 점)</span></div>
+          </div>
+        </div>
+        <p class="pen">수학 문제도 "한 문장으로 다시 말하기"가 되면 반은 푼 거야.</p>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide" id="s15" aria-label="일주일 루틴">
+      <div class="inner">
+        <p class="eyebrow">일주일 루틴</p>
+        <h2>수업 끝난 날은 <mark>20~30분 복습</mark></h2>
+        <p class="lead">그날 배운 걸 백지에 써 보고, 막힌 곳만 표시해. 길게 할 필요 없어. 매일 꺼내 보는 게 중요해.</p>
+        <div class="week">
+          <div class="day"><span class="d">월</span><span class="tag">수학 학원</span><span class="tag">국어 독서</span><span class="tag home">복습 20분</span></div>
+          <div class="day"><span class="d">화</span><span class="tag home">과외 전 20분 문장 가리고 쓰기</span><span class="tag">20:00~21:30 영어 과외 (집)</span></div>
+          <div class="day"><span class="d">수</span><span class="tag">수학 학원</span><span class="tag home">복습 20분</span></div>
+          <div class="day"><span class="d">목</span><span class="tag home">과외 전 20분 문장 가리고 쓰기</span><span class="tag">20:00~21:30 영어 과외 (집)</span></div>
+          <div class="day"><span class="d">금</span><span class="tag">수학 학원</span><span class="tag home">복습 20분</span></div>
+          <div class="day we"><span class="d">토</span><span class="tag">11시 미술 학원 🎨</span><span class="tag home">오후 같이 60분</span><span class="tag">개념 설명 · 응용 2문제 · 영어 가리고 쓰기</span></div>
+          <div class="day we"><span class="d">일</span><span class="tag home">계획 30분</span><span class="tag">다음 주 계획 직접 세우기</span></div>
+        </div>
+        <p class="pen">토요일 오전은 그림 그리며 머리 쉬는 시간. 오후엔 네가 선생님이야. 이번 주 배운 개념 하나를 나한테 설명해 줘.</p>
+      </div>
+    </section>
+
+    <!-- 16 -->
+    <section class="slide" id="s16" aria-label="계획은 네가">
+      <div class="inner">
+        <p class="eyebrow">계획 세우기</p>
+        <h2>계획은 조금씩 <mark>네 손으로</mark></h2>
+        <p class="lead">처음부터 혼자 하라는 게 아니야. 두 달 동안 천천히 넘겨줄게.</p>
+        <div class="stage3">
+          <div><p class="w">1~4주</p><div class="meter"><i class="on"></i><i></i><i></i></div><h3>내가 짜고, 네가 해 본다</h3><p class="muted">해 보면서 뭐가 맞고 안 맞는지 알려 줘.</p></div>
+          <div><p class="w">5~8주</p><div class="meter"><i class="on"></i><i class="on"></i><i></i></div><h3>네가 초안, 내가 다듬기</h3><p class="muted">일요일에 같이 보고 고치자.</p></div>
+          <div><p class="w">그 이후</p><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i></div><h3>네가 세우고, 나는 점검만</h3><p class="muted">주말에 잘 됐는지만 같이 본다.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 -->
+    <section class="slide" id="s17" aria-label="첫 시험 작전">
+      <div class="inner">
+        <p class="eyebrow">첫 번째 실전</p>
+        <h2>2학기 기말, <mark>3주 작전</mark></h2>
+        <p class="lead">1학기는 자유학기라 이번이 첫 지필고사일 거야. 오늘 본 방법을 처음 써 보는 시험이야.</p>
+        <ol class="steps">
+          <li><div><b>3주 전 · 범위 정리</b>과목별 범위를 적고, 백지에 단원별로 아는 걸 다 써 본다. 빈 곳이 공부할 곳.</div></li>
+          <li><div><b>2주 전 · 오답 반복</b>틀렸던 문제만 모아서 가리고 다시 푼다. 맞을 때까지.</div></li>
+          <li><div><b>1주 전 · 응용과 서술형</b>수학 응용문제는 4단계로, 영어는 핵심 문장 가리고 쓰기.</div></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 18 -->
+    <section class="slide" id="s18" aria-label="마무리">
+      <div class="inner cover">
+        <p class="eyebrow">마지막으로</p>
+        <h2>공부법은 정답이 아니라 <mark>도구</mark>야</h2>
+        <p class="lead">나한테 맞았던 방법이라고 너한테 다 맞으라는 법은 없어. 써 보고, 안 맞는 건 같이 고치자. 네 방법이 생기면 그게 제일 좋은 거야.</p>
+        <p class="pen">이제 네 생각을 들려줘. 어떤 게 제일 해 볼 만해 보여?</p>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="nav" aria-label="슬라이드 이동">
+    <button id="prev" type="button">← 이전</button>
+    <span class="count" id="count">1 / 18</span>
+    <button id="next" type="button" class="next">다음 →</button>
+  </nav>
+</div>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var n=slides.length, i=0;
+  var prev=document.getElementById('prev'), next=document.getElementById('next');
+  function show(k){
+    i=Math.max(0,Math.min(n-1,k));
+    slides.forEach(function(s,j){s.classList.toggle('active',j===i); if(j===i) s.scrollTop=0;});
+    var label=(i+1)+' / '+n;
+    document.getElementById('count').textContent=label;
+    document.getElementById('where').textContent=label;
+    document.getElementById('bar').style.width=((i+1)/n*100)+'%';
+    prev.disabled=i===0; next.disabled=i===n-1;
+    try{history.replaceState(null,'','#s'+(i+1));}catch(e){}
+  }
+  prev.addEventListener('click',function(){show(i-1)});
+  next.addEventListener('click',function(){show(i+1)});
+  document.addEventListener('keydown',function(e){
+    if(e.target.tagName==='INPUT') return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();show(i+1)}
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();show(i-1)}
+  });
+  var sx=null, sy=null, stage=document.getElementById('stage');
+  stage.addEventListener('touchstart',function(e){sx=e.touches[0].clientX; sy=e.touches[0].clientY},{passive:true});
+  stage.addEventListener('touchend',function(e){
+    if(sx===null) return;
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)*1.5) show(i+(dx<0?1:-1));
+    sx=null;
+  },{passive:true});
+  var m=/^#s(\d+)$/.exec(location.hash||'');
+  show(m?parseInt(m[1],10)-1:0);
+
+  // photo slots: preview a picture chosen on this device (not saved)
+  [].forEach.call(document.querySelectorAll('.photo input'),function(inp){
+    inp.addEventListener('change',function(){
+      var f=inp.files&&inp.files[0]; if(!f) return;
+      var r=new FileReader();
+      r.onload=function(){
+        var lab=inp.parentNode;
+        [].forEach.call(lab.querySelectorAll('span,img'),function(el){el.remove()});
+        var img=document.createElement('img'); img.src=r.result; img.alt='오답 사진';
+        lab.appendChild(img);
+      };
+      r.readAsDataURL(f);
+    });
+  });
+})();
+</script>
+</body>
+</html>
